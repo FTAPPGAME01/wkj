@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta Instagram</title>
+    <style>
+        body {
+            font-family: system-ui;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #f09433, #dc2743);
+            margin-right: 10px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            color: #262626;
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+
+        .username-input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+            margin-right: 10px;
+        }
+
+        .button {
+            background: #0095f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: #0081d6;
+        }
+
+        .poll-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .option {
+            padding: 15px;
+            border-radius: 4px;
+            background: #f0f0f0;
+            cursor: pointer;
+            border: none;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .option:hover {
+            background: #e8e8e8;
+        }
+
+        .voters {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .voter {
+            padding: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <div class="avatar"></div>
+            <div class="input-container">
+                <span class="input-label">nombre de usuario Instagram:</span>
+                <input type="text" id="username" class="username-input" placeholder="@usuario">
+            </div>
+        </div>
+
+        <h2>¿Te interesa?</h2>
+        
+        <div class="poll-options">
+            <button class="option" onclick="votar('si')">
+                <span>Sí</span>
+                <span id="porcentaje-si">0%</span>
+            </button>
+            <button class="option" onclick="votar('no')">
+                <span>No</span>
+                <span id="porcentaje-no">0%</span>
+            </button>
+        </div>
+
+        <div>Total votos: <span id="total-votos">0</span></div>
+
+        <div class="voters" id="lista-votantes">
+            <h3>Últimos votos:</h3>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar o cargar datos
+        let datos = JSON.parse(localStorage.getItem('datos')) || {
+            si: 0,
+            no: 0,
+            votantes: []
+        };
+
+        function actualizarInterfaz() {
+            const total = datos.si + datos.no;
+            const porcentajeSi = total ? ((datos.si / total) * 100).toFixed(1) : 0;
+            const porcentajeNo = total ? ((datos.no / total) * 100).toFixed(1) : 0;
+
+            document.getElementById('porcentaje-si').textContent = porcentajeSi + '%';
+            document.getElementById('porcentaje-no').textContent = porcentajeNo + '%';
+            document.getElementById('total-votos').textContent = total;
+
+            // Actualizar lista de votantes
+            const listaHTML = datos.votantes
+                .slice(-10)
+                .reverse()
+                .map(v => `<div class="voter"><span>@${v.usuario}</span><span>${v.voto}</span></div>`)
+                .join('');
+            document.getElementById('lista-votantes').innerHTML = '<h3>Últimos votos:</h3>' + listaHTML;
+        }
+
+        function votar(opcion) {
+            let usuario = document.getElementById('username').value.trim();
+            if (!usuario) {
+                alert('Por favor ingresa un usuario');
+                return;
+            }
+
+            // Asegurar que el usuario empiece con @
+            if (!usuario.startsWith('@')) {
+                usuario = '@' + usuario;
+            }
+
+            // Registrar voto
+            datos[opcion === 'si' ? 'si' : 'no']++;
+            datos.votantes.push({
+                usuario: usuario.substring(1), // Guardar sin @
+                voto: opcion === 'si' ? 'Sí' : 'No'
+            });
+
+            // Guardar y actualizar
+            localStorage.setItem('datos', JSON.stringify(datos));
+            actualizarInterfaz();
+            
+            // Limpiar usuario
+            document.getElementById('username').value = '';
+        }
+
+        // Inicializar interfaz
+        actualizarInterfaz();
+    </script>
+</body>
+</html>
